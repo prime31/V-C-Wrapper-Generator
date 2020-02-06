@@ -1,1 +1,4 @@
+binaries/VGenerator.exe filter=lfs diff=lfs merge=lfs -text
+binaries/VGenerator_linux filter=lfs diff=lfs merge=lfs -text
+binaries/VGenerator filter=lfs diff=lfs merge=lfs -text
 binaries/* filter=lfs diff=lfs merge=lfs -text
