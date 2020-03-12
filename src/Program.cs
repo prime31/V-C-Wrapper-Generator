@@ -48,13 +48,13 @@ namespace Generator
 			}
 			else
 			{
-				PrintHelp();
+				// PrintHelp();
 
 				// Run(GetKincConfig());
 				// Run(GetPhyFSConfig());
 				// Run(GetSDLConfig());
 				// Run(GetLuaConfig());
-				// Run(GetFlecsConfig());
+				Run(GetFlecsConfig());
 			}
 		}
 
@@ -74,7 +74,7 @@ namespace Generator
 		static void Run(Config config)
 		{
 			var compilation = CppParser.ParseFiles(config.GetFiles(), config.ToParserOptions());
-			VGenerator.Generate(config, compilation);
+			OdinGenerator.Generate(config, compilation);
 			// compilation.Dump();
 		}
 
@@ -88,12 +88,10 @@ namespace Generator
 				SrcDir = "~/Desktop/lua-5.3.5/src",
 				BaseSourceFolder = "src",
 				ModuleName = "lua",
-				VWrapperFileName = "lua",
-				SingleVFileExport = true,
 				ExcludeFunctionsThatContain = new string[] {},
 				StripPrefixFromFunctionNames = new string[] {},
-				CTypeToVType = {
-					{"__sFILE", "voidptr"}
+				CTypeToOdinType = {
+					{"__sFILE", "rawptr"}
 				},
 				Defines = new string[] {},
 				IncludeFolders = new string[] { "src" },
@@ -101,7 +99,7 @@ namespace Generator
 					"lua.h", "lualib.h", "lauxlib.h"
 				},
 				ExcludedFiles = new string[] {},
-				ExcludedFromVWrapperFiles = new string[] {}
+				ExcludedFromOdinWrapperFiles = new string[] {}
 			};
 		}
 
@@ -109,26 +107,24 @@ namespace Generator
 		{
 			return new Config
 			{
-				DstDir = "~/Desktop/flecs/flecs",
-				SrcDir = "~/.vmodules/prime31/flecs/flecs_git/src",
+				DstDir = "~/Desktop/SDL2",
+				SrcDir = "~/Desktop/flecs/include",
 				BaseSourceFolder = "src",
 				ModuleName = "flecs",
-				VWrapperFileName = "flecs",
-				SingleVFileExport = false,
 				ExcludeFunctionsThatContain = new string[] {},
-				StripPrefixFromFunctionNames = new string[] {},
-				CTypeToVType = {},
+				StripPrefixFromFunctionNames = new string[] {"ecs_", "_ecs_", "Ecs"},
+				CTypeToOdinType = {},
 				Defines = new string[] { "FLECS_NO_CPP" },
 				IncludeFolders = new string[] {
-					"~/.vmodules/prime31/flecs/flecs_git/include",
-					"~/.vmodules/prime31/flecs/flecs_git/include/flecs",
-					"~/.vmodules/prime31/flecs/flecs_git/include/flecs/util"
+					"",
+					"flecs",
+					"flecs/util"
 				},
 				Files = new string[] {
 					"flecs.h"
 				},
 				ExcludedFiles = new string[] {},
-				ExcludedFromVWrapperFiles = new string[] {}
+				ExcludedFromOdinWrapperFiles = new string[] {}
 			};
 		}
 
@@ -140,12 +136,10 @@ namespace Generator
 				SrcDir = "/usr/local/include/SDL2",
 				BaseSourceFolder = "src",
 				ModuleName = "sdl",
-				VWrapperFileName = "sdl",
-				SingleVFileExport = true,
 				ExcludeFunctionsThatContain = new string[] {},
 				StripPrefixFromFunctionNames = new string[] { "SDL_"},
-				CTypeToVType = {
-					{"__sFILE", "voidptr"}
+				CTypeToOdinType = {
+					{"__sFILE", "rawptr"}
 				},
 				Defines = new string[] {},
 				IncludeFolders = new string[] {},
@@ -157,7 +151,7 @@ namespace Generator
 					"SDL_thread", "SDL_gesture", "SDL_sensor", "SDL_power", "SDL_render", "SDL_shape",
 					"SDL_endian", "SDL_cpuinfo", "SDL_loadso", "SDL_system"
 				},
-				ExcludedFromVWrapperFiles = new string[] {
+				ExcludedFromOdinWrapperFiles = new string[] {
 					"SDL_stdinc"
 				}
 			};
@@ -171,11 +165,9 @@ namespace Generator
 				SrcDir = "~/Desktop/physfs/src",
 				BaseSourceFolder = "src",
 				ModuleName = "c",
-				VWrapperFileName = "physfs",
-				SingleVFileExport = true,
 				ExcludeFunctionsThatContain = new string[] {},
 				StripPrefixFromFunctionNames = new string[] { "PHYSFS_"},
-				CTypeToVType = {},
+				CTypeToOdinType = {},
 				TargetSystem = "darwin",
 				Defines = new string[] {},
 				IncludeFolders = new string[] {},
@@ -193,12 +185,10 @@ namespace Generator
 				SrcDir = "~/Desktop/kha/Shader-Kinc/Kinc",
 				BaseSourceFolder = "kinc",
 				ModuleName = "c",
-				SingleVFileExport = true,
 				ExcludeFunctionsThatContain = new string[] { "_internal_" },
 				StripPrefixFromFunctionNames = new string[] { "kinc_g4_", "kinc_g5_", "kinc_", "LZ4_" },
-				CTypeToVType = {
-					{"kinc_ticks_t", "u64"},
-					{"id", "voidptr"}
+				CTypeToOdinType = {
+					{"kinc_ticks_t", "u64"}
 				},
 				TargetSystem = "darwin",
 				Defines = new string[] {

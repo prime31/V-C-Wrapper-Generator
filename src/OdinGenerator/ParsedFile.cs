@@ -105,17 +105,17 @@ namespace Generator
 			var f = new ParsedFunction
 			{
 				Name = cFunc.Name,
-				VName = V.ToSnakeCase(config.StripFunctionPrefix(cFunc.Name))
+				OdinName = Odin.ToSnakeCase(config.StripFunctionPrefix(cFunc.Name))
 			};
 
 			// hack to fix ghetto forced 'init' module function
-			if (f.VName == "init")
-				f.VName = config.ModuleName + "_" + f.VName;
+			if (f.OdinName == "init")
+				f.OdinName = config.ModuleName + "_" + f.OdinName;
 
 			if (cFunc.ReturnType.GetDisplayName() != "void")
 			{
 				f.RetType = cFunc.ReturnType.GetDisplayName();
-				f.VRetType = V.GetVType(cFunc.ReturnType);
+				f.OdinRetType = Odin.GetOdinType(cFunc.ReturnType);
 			}
 
 			foreach (var param in cFunc.Parameters)
@@ -123,9 +123,9 @@ namespace Generator
 				var p = new ParsedParameter
 				{
 					Name = param.Name.EscapeReserved(),
-					VName = V.ToSnakeCase(config.StripFunctionPrefix(param.Name)).EscapeReserved(),
+					OdinName = Odin.ToAdaCase(config.StripFunctionPrefix(param.Name)).EscapeReserved(),
 					Type = param.Type.GetDisplayName(),
-					VType = V.GetVType(param.Type)
+					OdinType = Odin.GetOdinType(param.Type)
 				};
 				f.Parameters.Add(p);
 			}
@@ -136,14 +136,14 @@ namespace Generator
 
 	public class ParsedFunction
 	{
-		public string Name, VName;
-		public string RetType, VRetType;
+		public string Name, OdinName;
+		public string RetType, OdinRetType;
 		public List<ParsedParameter> Parameters = new List<ParsedParameter>();
 	}
 
 	public class ParsedParameter
 	{
-		public string Name, VName;
-		public string Type, VType;
+		public string Name, OdinName;
+		public string Type, OdinType;
 	}
 }

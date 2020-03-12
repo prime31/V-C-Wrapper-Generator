@@ -7,23 +7,23 @@ using CppAst;
 
 namespace Generator
 {
-	public static class V
+	public static class Odin
 	{
-		static Dictionary<string, string> cTypeToVType = new Dictionary<string, string>
+		static Dictionary<string, string> cTypeToOdinType = new Dictionary<string, string>
 		{
 			{"bool", "bool"},
-			{"void*", "voidptr"},
-			{"void**", "&voidptr"},
+			{"void*", "rawptr"},
+			{"void**", "&rawptr"},
 			{"char", "byte"},
-			{"char*", "byteptr"},
+			{"char*", "cstring"},
 			{"wchar", "u16"},
 			{"int8_t", "i8"},
 			{"short", "i16"},
 			{"int16_t", "i16"},
-			{"size_t", "size_t"},
-			{"int", "int"},
-			{"int*", "&int"},
-			{"int32_t", "int"},
+			{"size_t", "uint"},
+			{"int", "i32"},
+			{"int*", "&i32"},
+			{"int32_t", "i32"},
 			{"int64_t", "i64"},
 			{"long", "i64"},
 			{"float", "f32"},
@@ -37,13 +37,13 @@ namespace Generator
 			{"unsigned long", "u64"},
 			{"uint64_t", "u64"},
 			{"unsigned char", "byte"},
-			{"const char *", "byteptr"},
-			{"const char*", "byteptr"},
-			{"const void *", "voidptr"},
-			{"const void*", "voidptr"},
-			{"unsigned char*", "byteptr"},
-			{"unsigned char *", "byteptr"},
-			{"const char**", "&voidptr"}
+			{"const char *", "cstring"},
+			{"const char*", "cstring"},
+			{"const void *", "rawptr"},
+			{"const void*", "rawptr"},
+			{"unsigned char*", "cstring"},
+			{"unsigned char *", "cstring"},
+			{"const char**", "&rawptr"}
 		};
 
 		static string[] reserved = new[] { /*"map",*/ "string", "return", "or", "none", "type", "select", "false", "true", "module" };
@@ -52,39 +52,39 @@ namespace Generator
 		{
 			foreach (var t in types)
 			{
-				if (!cTypeToVType.ContainsKey(t.Value))
-					cTypeToVType[t.Key] = t.Value;
+				if (!cTypeToOdinType.ContainsKey(t.Value))
+					cTypeToOdinType[t.Key] = t.Value;
 			}
 		}
 
-		public static void AddTypeConversion(string type) => cTypeToVType[type] = "C." + type;
+		public static void AddTypeConversion(string type) => cTypeToOdinType[type] = type;
 
-		public static void AddTypeConversion(string type, string toType) => cTypeToVType[type] = toType;
+		public static void AddTypeConversion(string type, string toType) => cTypeToOdinType[type] = toType;
 
-		public static string GetVType(CppType cppType)
+		public static string GetOdinType(CppType cppType)
 		{
 			// unwrap any const vars
 			if (cppType.TypeKind == CppTypeKind.Qualified && cppType is CppQualifiedType cppQualType)
 			{
 				if (cppQualType.Qualifier == CppTypeQualifier.Const)
-					return GetVType(cppQualType.ElementType);
+					return GetOdinType(cppQualType.ElementType);
 			}
 
 			if (cppType is CppClass cppClass && cppClass.ClassKind == CppClassKind.Union)
 			{
 				Console.WriteLine($"Found union we can't handle! [{cppType.Span}]");
-				return "voidptr";
+				return "rawptr";
 			}
 
 			if (cppType.TypeKind == CppTypeKind.Enum || cppType.TypeKind == CppTypeKind.Primitive)
-				return GetVType(cppType.GetDisplayName());
+				return GetOdinType(cppType.GetDisplayName());
 
 			if (cppType.TypeKind == CppTypeKind.Typedef && cppType is CppTypedef typeDefType)
 			{
 				if (typeDefType.IsPrimitiveType())
 					return typeDefType.ElementTypeAsPrimitive().GetVType();
 				else
-					return GetVType(typeDefType.ElementType);
+					return GetOdinType(typeDefType.ElementType);
 			}
 
 			if (cppType.TypeKind == CppTypeKind.Pointer)
@@ -96,14 +96,14 @@ namespace Generator
 					return "byteptr";
 
 				if (cppPtrType.GetDisplayName() == "const void*" || cppPtrType.GetDisplayName() == "void*")
-					return "voidptr";
+					return "rawptr";
 
 				// double pointer check
 				if (cppPtrType.ElementType.TypeKind == CppTypeKind.Pointer)
 				{
 					if (cppPtrType.ElementType.TypeKind == CppTypeKind.Pointer)
-						return $"&voidptr /* {cppPtrType.GetDisplayName()} */";
-					return $"&{GetVType(cppPtrType.ElementType)} /* {cppPtrType.GetDisplayName()} */";
+						return $"&rawptr /* {cppPtrType.GetDisplayName()} */";
+					return $"^{GetOdinType(cppPtrType.ElementType)} /* {cppPtrType.GetDisplayName()} */";
 				}
 
 				// unwrap any const vars
@@ -112,8 +112,8 @@ namespace Generator
 					if (qualType.Qualifier == CppTypeQualifier.Const)
 					{
 						if (qualType.ElementType is CppPrimitiveType qualPrimType && qualPrimType.Kind == CppPrimitiveKind.Void)
-							return $"voidptr";
-						return "&" + GetVType(qualType.ElementType);
+							return $"rawptr";
+						return "^" + GetOdinType(qualType.ElementType);
 					}
 				}
 
@@ -137,22 +137,22 @@ namespace Generator
 						// void return
 						if (funcType.ReturnType is CppPrimitiveType cppPrimType && cppPrimType.Kind == CppPrimitiveKind.Void)
 							return null;
-						return GetVType(funcType.ReturnType);
+						return "-> " + GetOdinType(funcType.ReturnType);
 					};
 
 					// easy case: no parameters
 					if (funcType.Parameters.Count == 0)
-						return $"fn() {GetReturnType()}".TrimEnd();
+						return $"proc() {GetReturnType()}".TrimEnd();
 
 					var sb = new StringBuilder();
-					sb.Append("fn(");
+					sb.Append("proc(");
 					foreach (var p in funcType.Parameters)
 					{
-						var paramType = GetVType(p.Type);
-						if (paramType.Contains("fn"))
+						var paramType = GetOdinType(p.Type);
+						if (paramType.Contains("proc"))
 						{
 							// TODO: typedef the function param
-							var typeDef = $"pub type Fn{V.ToPascalCase(p.Name)} {paramType}";
+							var typeDef = $"type Fn{Odin.ToPascalCase(p.Name)} {paramType}";
 						}
 						sb.Append(paramType);
 
@@ -165,21 +165,21 @@ namespace Generator
 					if (ret != null)
 						sb.Append($" {ret}");
 
-					// check for a function pointer that has a function as a param. This is currently invalid in V.
+					// check for a function pointer that has a function as a param.
 					var definition = sb.ToString();
-					if (definition.LastIndexOf("fn") > 2)
-						return $"voidptr /* {definition} */";
+					if (definition.LastIndexOf("proc") > 2)
+						return $"rawptr /* {definition} */";
 					return sb.ToString();
 				}
 				else if (cppPtrType.ElementType.TypeKind == CppTypeKind.Typedef)
 				{
 					// functions dont get passed with '&' so we have to see if this Typedef has a function in its lineage
 					if (cppPtrType.ElementType is CppTypedef td && td.IsFunctionType())
-						return GetVType(cppPtrType.ElementType);
-					return "&" + GetVType(cppPtrType.ElementType);
+						return GetOdinType(cppPtrType.ElementType);
+					return "^" + GetOdinType(cppPtrType.ElementType);
 				}
 
-				return "&" + GetVType(cppPtrType.ElementType.GetDisplayName());
+				return "^" + GetOdinType(cppPtrType.ElementType.GetDisplayName());
 			} // end Pointer
 
 			if (cppType.TypeKind == CppTypeKind.Array)
@@ -190,33 +190,41 @@ namespace Generator
 					if (arrParamClass.Name.Contains("va_"))
 					{
 						Console.WriteLine($"Found unhandled vararg param! [{cppType}]");
-						return "voidptr /* ...voidptr */";
+						return "rawptr /* ...rawptr */";
 					}
 				}
-				var eleType = GetVType(arrType.ElementType);
+				var eleType = GetOdinType(arrType.ElementType);
 				if (arrType.Size > 0)
 					return $"[{arrType.Size}]{eleType}";
 				return $"[]{eleType}";
 			}
 
-			return GetVType(cppType.GetDisplayName());
+			return GetOdinType(cppType.GetDisplayName());
 		}
 
-		public static string GetVType(string type)
+		public static string GetOdinType(string type)
 		{
-			if (cTypeToVType.TryGetValue(type, out var vType))
+			if (cTypeToOdinType.TryGetValue(type, out var vType))
 				return vType;
 
 			Console.WriteLine($"no conversion found for {type}");
 			return type;
 		}
 
-		public static string GetVEnumName(string name)
+		public static string GetOdinEnumName(string name)
 		{
 			if (name.EndsWith("_t"))
 				name = name.Substring(0, name.Length - 2);
 
-			return ToPascalCase(name);
+			return ToAdaCase(name);
+		}
+
+		public static string GetOdinStructName(string name)
+		{
+			if (name.EndsWith("_t"))
+				name = name.Substring(0, name.Length - 2);
+
+			return ToAdaCase(name);
 		}
 
 		public static string GetCFieldName(string name)
@@ -226,15 +234,15 @@ namespace Generator
 			return name;
 		}
 
-		public static string GetVEnumItemName(string name)
+		public static string GetOdinEnumItemName(string name)
 		{
 			if (name.Contains('_'))
-				return name.ToLower().MakeSafeEnumItem();
+				return name.MakeSafeEnumItem();
 
 			if (name.IsUpper())
-				name = name.ToLower().MakeSafeEnumItem();
+				name = ToAdaCase(name).MakeSafeEnumItem();
 
-			return ToSnakeCase(name).MakeSafeEnumItem();
+			return ToAdaCase(name).MakeSafeEnumItem();
 		}
 
 		/// <summary>
@@ -288,6 +296,13 @@ namespace Generator
 
 			name = string.Concat(name.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString())).ToLower();
 			return EscapeReserved(name);
+		}
+
+		public static string ToAdaCase(string original)
+		{
+			var str = ToPascalCase(original);
+			str = string.Concat(str.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString()));
+			return str;
 		}
 
 		public static string ToPascalCase(string original)

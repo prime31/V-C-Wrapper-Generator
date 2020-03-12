@@ -11,9 +11,6 @@ namespace Generator
 		public string SrcDir {get; set;}
 		public string DstDir {get; set;}
 		public string ModuleName {get; set;}
-		public string VWrapperFileName {get; set;}
-		public string CDeclarationFileName {get; set;}
-		public bool SingleVFileExport  {get; set;} = false;
 		public bool CopyHeadersToDstDir  {get; set;} = false;
 
 		/// <summary>
@@ -24,13 +21,13 @@ namespace Generator
 
 		/// <summary>
 		/// if a function name starts with any prefix present, it will be stripped before writing the
-		/// V function. Note that this is the C function prefix.
+		/// Odin function. Note that this is the C function prefix.
 		/// </summary>
 		public string[] StripPrefixFromFunctionNames {get; set;} = new string[] {};
 
 		/// <summary>
 		/// if true, if there is a common prefix for all the enum values it will be stripped when
-		/// generating the V items
+		/// generating the Odin items
 		/// </summary>
 		public bool StripEnumItemCommonPrefix {get; set;} = true;
 
@@ -42,14 +39,14 @@ namespace Generator
 		public string BaseSourceFolder {get; set;}
 
 		/// <summary>
-		/// if true, the folder the header is in will be used for the generated V file
+		/// if true, the folder the header is in will be used for the generated Odin file
 		/// </summary>
 		public bool UseHeaderFolder {get; set;} = true;
 
 		/// <summary>
-		/// custom map of C types to V types. Most default C types will be handled automatically.
+		/// custom map of C types to Odin types. Most default C types will be handled automatically.
 		/// </summary>
-		public Dictionary<string, string> CTypeToVType {get; set;} = new Dictionary<string, string>();
+		public Dictionary<string, string> CTypeToOdinType {get; set;} = new Dictionary<string, string>();
 
 		/// <summary>
 		/// All the header files that should be parsed and converted.
@@ -58,14 +55,14 @@ namespace Generator
 
 		/// <summary>
 		/// All the header files that should be excluded from conversion. If a file should be declared in the c declaration
-		/// but not wrapped it should be added to ExcludedFromVWrapperFiles
+		/// but not wrapped it should be added to ExcludedFromOdinWrapperFiles
 		/// </summary>
 		public string[] ExcludedFiles {get; set;}
 
 		/// <summary>
-		/// All the header files that should be excluded from the V wrapper
+		/// All the header files that should be excluded from the Odin wrapper
 		/// </summary>
-		public string[] ExcludedFromVWrapperFiles {get; set;}
+		public string[] ExcludedFromOdinWrapperFiles {get; set;}
 
 		/// <summary>
 		/// List of the defines.
@@ -128,8 +125,9 @@ namespace Generator
 			if (!Path.IsPathRooted(DstDir))
 				DstDir = DstDir.Replace("~", homeFolder);
 
-			if (string.IsNullOrEmpty(VWrapperFileName))
-				throw new ArgumentException(nameof(VWrapperFileName));
+			if (!Path.IsPathRooted(SrcDir))
+				SrcDir = SrcDir.Replace("~", homeFolder);
+
 			if (string.IsNullOrEmpty(ModuleName))
 				throw new ArgumentException(nameof(ModuleName));
 			if (string.IsNullOrEmpty(SrcDir))
@@ -140,18 +138,9 @@ namespace Generator
 			if (Files.Length == 0)
 				throw new ArgumentException(nameof(Files));
 
-			if (!VWrapperFileName.EndsWith(".v"))
-				VWrapperFileName = VWrapperFileName + ".v";
-
-			if (string.IsNullOrEmpty(CDeclarationFileName))
-				CDeclarationFileName = "c.v";
-
-			if (!CDeclarationFileName.EndsWith(".v"))
-				CDeclarationFileName = CDeclarationFileName + ".v";
-
 			// exlude filenames dont need extensions
 			ExcludedFiles = ExcludedFiles.Select(f => f.Replace(".h", "")).ToArray();
-			ExcludedFromVWrapperFiles = ExcludedFromVWrapperFiles.Select(f => f.Replace(".h", "")).ToArray();
+			ExcludedFromOdinWrapperFiles = ExcludedFromOdinWrapperFiles.Select(f => f.Replace(".h", "")).ToArray();
 		}
 
 		void AddSystemIncludes()
@@ -185,11 +174,19 @@ namespace Generator
 		/// </summary>
 		string IncludedFileToAbsPath(string path)
 		{
+			var homeFolder = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 			foreach (var incPath in ToAbsolutePaths(IncludeFolders))
 			{
 				var tmp = Path.Combine(incPath, path);
 				if (File.Exists(tmp))
 					return tmp;
+
+				if (!Path.IsPathRooted(tmp))
+				{
+					tmp = tmp.Replace("~", homeFolder);
+					if (File.Exists(tmp))
+						return tmp;
+				}
 			}
 
 			if (!Path.IsPathRooted(SrcDir))
@@ -228,8 +225,8 @@ namespace Generator
 
 		public static bool IsFileExcludedFromVWrapper(this Config config, ParsedFile file)
 		{
-			return config.ExcludedFromVWrapperFiles.Contains(file.Filename)
-				|| config.ExcludedFromVWrapperFiles.Contains(Path.Combine(file.Folder, file.Filename));
+			return config.ExcludedFromOdinWrapperFiles.Contains(file.Filename)
+				|| config.ExcludedFromOdinWrapperFiles.Contains(Path.Combine(file.Folder, file.Filename));
 		}
 	}
 }
