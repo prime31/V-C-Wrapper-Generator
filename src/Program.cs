@@ -54,7 +54,8 @@ namespace Generator
 				// Run(GetPhyFSConfig());
 				// Run(GetSDLConfig());
 				// Run(GetLuaConfig());
-				Run(GetFlecsConfig());
+				// Run(GetFlecsConfig());
+				Run(GetSoloudConfig());
 			}
 		}
 
@@ -79,6 +80,29 @@ namespace Generator
 		}
 
 		#region Example Configs
+
+		static Config GetSoloudConfig()
+		{
+			return new Config
+			{
+				DstDir = "~/Desktop/OdinSoloud",
+				SrcDir = "~/Desktop",
+				BaseSourceFolder = "",
+				ModuleName = "soloud",
+				ExcludeFunctionsThatContain = new string[] {},
+				StripPrefixFromFunctionNames = new string[] {"Soloud_"},
+				CTypeToOdinType = {},
+				Defines = new string[] {},
+				IncludeFolders = new string[] {
+					""
+				},
+				Files = new string[] {
+					"Soloud_c.h"
+				},
+				ExcludedFiles = new string[] {},
+				ExcludedFromOdinWrapperFiles = new string[] {}
+			};
+		}
 
 		static Config GetLuaConfig()
 		{

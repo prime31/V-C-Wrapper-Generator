@@ -82,9 +82,25 @@ namespace Generator
 			if (cppType.TypeKind == CppTypeKind.Typedef && cppType is CppTypedef typeDefType)
 			{
 				if (typeDefType.IsPrimitiveType())
+				{
 					return typeDefType.ElementTypeAsPrimitive().GetVType();
-				else
+				}
+				else if (typeDefType.ElementType.TypeKind == CppTypeKind.Pointer)
+				{
+					// check for typedefs of structs declared like: "typedef void * EchoFilter"
+					var wtf = typeDefType.ElementType as CppPointerType;
+					if (wtf.TypeKind == CppTypeKind.Pointer && wtf.ElementType.TypeKind == CppTypeKind.Primitive)
+					{
+						var ftw = wtf.ElementType as CppPrimitiveType;
+						if (ftw.Kind == CppPrimitiveKind.Void)
+							return GetOdinType(typeDefType.Name);
+					}
 					return GetOdinType(typeDefType.ElementType);
+				}
+				else
+				{
+					return GetOdinType(typeDefType.ElementType);
+				}
 			}
 
 			if (cppType.TypeKind == CppTypeKind.Pointer)
@@ -93,7 +109,7 @@ namespace Generator
 
 				// special V types
 				if (cppPtrType.GetDisplayName() == "const char*" || cppPtrType.GetDisplayName() == "char*")
-					return "byteptr";
+					return "cstring";
 
 				if (cppPtrType.GetDisplayName() == "const void*" || cppPtrType.GetDisplayName() == "void*")
 					return "rawptr";

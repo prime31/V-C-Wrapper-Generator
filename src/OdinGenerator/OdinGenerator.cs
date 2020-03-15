@@ -13,6 +13,15 @@ namespace Generator
 
 			Odin.AddTypeConversions(config.CTypeToOdinType);
 
+			foreach (var t in comp.Typedefs)
+			{
+				var name = t.Name;
+				var odinName = Odin.ToAdaCase(name);
+				Odin.AddTypeConversion(name, odinName);
+
+				Console.WriteLine($"{odinName} :: struct {{}}");
+			}
+
 			// add conversions for any types in the lib
 			foreach (var s in comp.Classes)
 			{
@@ -102,7 +111,7 @@ namespace Generator
 				}
 
 				var prefix = CommonPrefix(e.Items[0].Name, e.Items.Select(i => i.Name).Skip(1).ToArray());
-				enumItemNames = enumItemNames.Select(n => n.Replace(prefix, "")).ToArray();
+				enumItemNames = enumItemNames.Select(n => prefix.Length > 0 ? n.Replace(prefix, "") : n).ToArray();
 			}
 
 			writer.WriteLine($"{Odin.GetOdinEnumName(config.StripFunctionPrefix(e.Name))} :: enum i32 {{");
