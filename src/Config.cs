@@ -11,13 +11,29 @@ namespace Generator
 		public string SrcDir {get; set;}
 		public string DstDir {get; set;}
 		public string ModuleName {get; set;}
-		public bool CopyHeadersToDstDir  {get; set;} = false;
+
+		/// <summary>
+		/// when converting enums these words will be search for an used to break up the name when Ada casing
+		/// </summary>
+		public string[] EnumWordDictionary {get; set;} = new string[] {};
+
+		/// <summary>
+		/// the name of the lib name. For windows it will be NAME.lib, mac libNAME.dylib and linux libNAME.so
+		/// </summary>
+		public string NativeLibName {get; set;}
+		public bool CopyHeadersToDstDir {get; set;} = false;
 
 		/// <summary>
 		/// if a function name contains any of the strings present here it will be excluded from
 		/// code generation.
 		/// </summary>
 		public string[] ExcludeFunctionsThatContain {get; set;} = new string[] {};
+
+		/// <summary>
+		/// if a function name contains any of the strings present here it will not have a link_name and the
+		/// raw C function name will be used
+		/// </summary>
+		public string[] SkipLinkNameFunctionsThatContain {get; set;} = new string[] {};
 
 		/// <summary>
 		/// if a function name starts with any prefix present, it will be stripped before writing the
@@ -85,7 +101,8 @@ namespace Generator
 		public string[] AdditionalArguments {get; set;} = new string[] {};
 
 		/// <summary>
-		/// Gets or sets a boolean indicating whether un-named enum/struct referenced by a typedef will be renamed directly to the typedef name. Default is <c>true</c>
+		/// Gets or sets a boolean indicating whether un-named enum/struct referenced by a typedef will be
+		/// renamed directly to the typedef name. Default is <c>true</c>
 		/// </summary>
 		public bool AutoSquashTypedef {get; set;} = true;
 
@@ -137,6 +154,8 @@ namespace Generator
 
 			if (Files.Length == 0)
 				throw new ArgumentException(nameof(Files));
+
+			Array.Sort(EnumWordDictionary, (x, y) => y.Length.CompareTo(x.Length));
 
 			// exlude filenames dont need extensions
 			ExcludedFiles = ExcludedFiles.Select(f => f.Replace(".h", "")).ToArray();
@@ -204,6 +223,11 @@ namespace Generator
 		public static bool IsFunctionExcluded(this Config config, string function)
 		{
 			return config.ExcludeFunctionsThatContain.Where(exclude => function.Contains(exclude)).Any();
+		}
+
+		public static bool IsFunctionNotLinked(this Config config, string function)
+		{
+			return config.SkipLinkNameFunctionsThatContain.Where(exclude => function.Contains(exclude)).Any();
 		}
 
 		public static string StripFunctionPrefix(this Config config, string function)

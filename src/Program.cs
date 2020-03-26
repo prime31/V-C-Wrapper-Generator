@@ -55,7 +55,8 @@ namespace Generator
 				// Run(GetSDLConfig());
 				// Run(GetLuaConfig());
 				// Run(GetFlecsConfig());
-				Run(GetSoloudConfig());
+				// Run(GetSoloudConfig());
+				Run(GetFNA3DConfig());
 			}
 		}
 
@@ -80,6 +81,34 @@ namespace Generator
 		}
 
 		#region Example Configs
+
+		static Config GetFNA3DConfig()
+		{
+			return new Config
+			{
+				DstDir = "~/Desktop/FNA3D_Odin",
+				SrcDir = "~/Desktop/FNA3D",
+				BaseSourceFolder = "",
+				ModuleName = "fna",
+				NativeLibName = "FNA3D",
+				SkipLinkNameFunctionsThatContain = new string[] {},
+				EnumWordDictionary = new string[] {"equal", "clockwise", "face", "short", "vector", "coordinate", "indices",
+					"weight", "factor", "size", "left", "right", "contents", "buffer", "list", "strip", "byte", "single",
+					"bgra", "blendable", "only", "source", "color", "destination", "saturation", "alpha", "blend", "subtract"},
+				ExcludeFunctionsThatContain = new string[] {},
+				StripPrefixFromFunctionNames = new string[] {"FNA3D_"},
+				CTypeToOdinType = {},
+				Defines = new string[] {},
+				IncludeFolders = new string[] {
+					"include"
+				},
+				Files = new string[] {
+					"FNA3D.h"
+				},
+				ExcludedFiles = new string[] {},
+				ExcludedFromOdinWrapperFiles = new string[] {}
+			};
+		}
 
 		static Config GetSoloudConfig()
 		{

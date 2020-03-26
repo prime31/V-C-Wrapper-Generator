@@ -28,10 +28,10 @@ namespace Generator
 				var mappedName = typeMap.GetOrNot(s.Name);
 				if (mappedName != s.Name)
 					Odin.AddTypeConversion(s.Name, mappedName);
-				Odin.AddTypeConversion(typeMap.GetOrNot(s.Name));
+				Odin.AddTypeConversion(typeMap.GetOrNot(s.Name), Odin.GetOdinStructName(config.StripFunctionPrefix(s.Name)));
 			}
 
-			// enums will all be replaced by our V enums
+			// enums will all be replaced by our Odin enums
 			foreach (var e in comp.Enums)
 			{
 				var mappedName = typeMap.GetOrNot(e.Name);
@@ -62,9 +62,9 @@ namespace Generator
 		static void WriteForeignBoilerplate(Config config, StreamWriter procWriter)
 		{
 			var libName = config.ModuleName + "_lib";
-			procWriter.WriteLine($"// when ODIN_OS == \"windows\" do foreign import {libName};");
-			procWriter.WriteLine($"// when ODIN_OS == \"linux\" do foreign import {libName};");
-			procWriter.WriteLine($"// when ODIN_OS == \"darwin\" do foreign import {libName};");
+			procWriter.WriteLine($"when ODIN_OS == \"windows\" do foreign import {libName} \"native/{config.NativeLibName}.lib\";");
+			procWriter.WriteLine($"when ODIN_OS == \"linux\" do foreign import {libName} \"native/lib{config.NativeLibName}.so\";");
+			procWriter.WriteLine($"when ODIN_OS == \"darwin\" do foreign import {libName} \"native/lib{config.NativeLibName}.dylib\";");
 			procWriter.WriteLine();
 			procWriter.WriteLine($"foreign {libName} {{");
 		}
@@ -73,7 +73,7 @@ namespace Generator
 		{
 			var module = config.ModuleName;
 
-			if (file.ParsedFunctions.Count > 0)
+			if (file.ParsedFunctions.Count > 1)
 				procWriter.WriteLine($"\t// {file.Folder}/{file.Filename}");
 
 			if (file.Structs.Count + file.Enums.Count > 0 )
@@ -118,11 +118,12 @@ namespace Generator
 			for (var i = 0; i < e.Items.Count; i++)
 			{
 				var item = e.Items[i];
-				writer.Write($"\t{Odin.GetOdinEnumItemName(enumItemNames[i])}");
+				writer.Write($"\t{Odin.GetOdinEnumItemName(enumItemNames[i], config)}");
 
 				if (hasValue)
 					writer.Write($" = {item.Value}");
-				writer.Write(",");
+				if (i != e.Items.Count - 1)
+					writer.Write(",");
 				writer.WriteLine();
 			}
 
@@ -133,12 +134,24 @@ namespace Generator
 		static void WriteStruct(StreamWriter writer, CppClass s, Config config)
 		{
 			var structName = Odin.GetOdinStructName(config.StripFunctionPrefix(s.Name));
+			if (s.Fields.Count == 0)
+			{
+				writer.WriteLine($"{structName} :: struct {{}}");
+				writer.WriteLine();
+				return;
+			}
+
 			writer.WriteLine($"{structName} :: struct {{");
 			foreach (var f in s.Fields)
 			{
 				var type = Odin.GetOdinType(f.Type);
 				var name = Odin.GetCFieldName(f.Name);
-				writer.WriteLine($"\t{name}: {type},");
+				writer.Write($"\t{name}: {type}");
+
+				if (s.Fields.Last() != f)
+					writer.WriteLine(",");
+				else
+					writer.WriteLine();
 			}
 
 			writer.WriteLine("}");
@@ -147,8 +160,10 @@ namespace Generator
 
 		static void WriteProc(StreamWriter writer, ParsedFunction func)
 		{
-			writer.WriteLine($"\t@(link_name = \"{func.Name}\")");
-			writer.Write($"\t{func.OdinName} :: proc("); // TODO: Odinize the name
+			if (!func.SkipLinkNameAttribute)
+				writer.WriteLine($"\t@(link_name = \"{func.Name}\")");
+
+			writer.Write($"\t{func.OdinName} :: proc(");
 			foreach (var p in func.Parameters)
 			{
 				writer.Write($"{p.Name}: {p.OdinType}");
@@ -164,7 +179,7 @@ namespace Generator
 			writer.WriteLine();
 		}
 
-		static void WriteVFunction(StreamWriter writer, ParsedFunction func)
+		static void WriteOdinFunction(StreamWriter writer, ParsedFunction func)
 		{
 			// first, V function def
 			writer.WriteLine("[inline]");

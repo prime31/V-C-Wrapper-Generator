@@ -4,7 +4,7 @@ namespace Generator
 {
     public static class CppPrimitiveTypeExt
     {
-        public static string GetVType(this CppPrimitiveType self)
+        public static string GetOdinType(this CppPrimitiveType self)
         {
             switch (self.Kind)
             {
@@ -17,7 +17,7 @@ namespace Generator
                 case CppPrimitiveKind.Float:
                     return "f32";
                 case CppPrimitiveKind.Int:
-                    return "int";
+                    return "i32";
                 case CppPrimitiveKind.LongDouble:
                     throw new System.NotImplementedException();
                 case CppPrimitiveKind.LongLong:
@@ -25,7 +25,7 @@ namespace Generator
                 case CppPrimitiveKind.Short:
                     return "i16";
                 case CppPrimitiveKind.UnsignedChar:
-                    return "byte";
+                    return "u8";
                 case CppPrimitiveKind.UnsignedInt:
                     return "u32";
                 case CppPrimitiveKind.UnsignedLongLong:

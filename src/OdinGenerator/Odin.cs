@@ -83,7 +83,7 @@ namespace Generator
 			{
 				if (typeDefType.IsPrimitiveType())
 				{
-					return typeDefType.ElementTypeAsPrimitive().GetVType();
+					return typeDefType.ElementTypeAsPrimitive().GetOdinType();
 				}
 				else if (typeDefType.ElementType.TypeKind == CppTypeKind.Pointer)
 				{
@@ -245,33 +245,31 @@ namespace Generator
 
 		public static string GetCFieldName(string name)
 		{
+			name = ToSnakeCase(name);
 			if (reserved.Contains(name))
-				return "@" + name;
+				return "_" + name;
 			return name;
 		}
 
-		public static string GetOdinEnumItemName(string name)
+		public static string GetOdinEnumItemName(string name, Config config)
 		{
-			if (name.Contains('_'))
-				return name.MakeSafeEnumItem();
+			var newName = ToAdaCase(name).MakeSafeEnumItem();
 
-			if (name.IsUpper())
-				name = ToAdaCase(name).MakeSafeEnumItem();
-
-			return ToAdaCase(name).MakeSafeEnumItem();
+			foreach (var part in config.EnumWordDictionary)
+			{
+				if (newName.Contains(part))
+					newName = newName.Replace(part, "_" + part.UppercaseFirst());
+			}
+			return newName;
 		}
+
+		public static string UppercaseFirst(this string str) => char.ToUpper(str[0]) + str.Substring(1);
 
 		/// <summary>
 		/// escapes a reserved name for use as a parameter.
 		/// </summary>
 		public static string EscapeReserved(this string name)
 		{
-			if (name == "none")
-				return "non";
-
-			if (name == "type")
-				return "typ";
-
 			if (name == "false")
 				return "no";
 
@@ -281,11 +279,8 @@ namespace Generator
 			if (name == "return")
 				return "ret";
 
-			if (name == "select")
-				return "sel";
-
-			if (name == "module")
-				return "mod";
+			if (name == "dynamic")
+				return "is_dynamic";
 
 			if (reserved.Contains(name))
 				throw new System.Exception($"need escape for {name}");

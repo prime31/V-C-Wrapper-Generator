@@ -102,15 +102,14 @@ namespace Generator
 		/// </summary>
 		static ParsedFunction ParsedFunctionFromCppFunction(CppFunction cFunc, Config config)
 		{
+			var skipLink = config.IsFunctionNotLinked(cFunc.Name);
+
 			var f = new ParsedFunction
 			{
+				SkipLinkNameAttribute = skipLink,
 				Name = cFunc.Name,
-				OdinName = Odin.ToSnakeCase(config.StripFunctionPrefix(cFunc.Name))
+				OdinName = skipLink ? cFunc.Name : Odin.ToSnakeCase(config.StripFunctionPrefix(cFunc.Name))
 			};
-
-			// hack to fix ghetto forced 'init' module function
-			if (f.OdinName == "init")
-				f.OdinName = config.ModuleName + "_" + f.OdinName;
 
 			if (cFunc.ReturnType.GetDisplayName() != "void")
 			{
@@ -122,7 +121,7 @@ namespace Generator
 			{
 				var p = new ParsedParameter
 				{
-					Name = param.Name.EscapeReserved(),
+					Name = Odin.ToSnakeCase(param.Name).EscapeReserved(),
 					OdinName = Odin.ToAdaCase(config.StripFunctionPrefix(param.Name)).EscapeReserved(),
 					Type = param.Type.GetDisplayName(),
 					OdinType = Odin.GetOdinType(param.Type)
@@ -138,6 +137,7 @@ namespace Generator
 	{
 		public string Name, OdinName;
 		public string RetType, OdinRetType;
+		public bool SkipLinkNameAttribute;
 		public List<ParsedParameter> Parameters = new List<ParsedParameter>();
 	}
 

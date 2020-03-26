@@ -15,7 +15,7 @@ namespace Generator
 				Add(t.Name, t.ElementType.GetDisplayName());
 
 				if (t.IsPrimitiveType())
-					Odin.AddTypeConversion(t.Name, t.ElementTypeAsPrimitive().GetVType());
+					Odin.AddTypeConversion(t.Name, t.ElementTypeAsPrimitive().GetOdinType());
 			}
 		}
 
