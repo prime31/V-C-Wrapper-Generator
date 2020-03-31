@@ -92,7 +92,7 @@ namespace Generator
 				ModuleName = "fna",
 				NativeLibName = "FNA3D",
 				SkipLinkNameFunctionsThatContain = new string[] {},
-				EnumWordDictionary = new string[] {"equal", "clockwise", "face", "short", "vector", "coordinate", "indices",
+				EnumWordDictionary = new string[] {"equal", "counter", "clockwise", "face", "short", "vector", "coordinate", "indices",
 					"weight", "factor", "size", "left", "right", "contents", "buffer", "list", "strip", "byte", "single",
 					"bgra", "blendable", "only", "source", "color", "destination", "saturation", "alpha", "blend", "subtract"},
 				ExcludeFunctionsThatContain = new string[] {},
