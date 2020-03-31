@@ -241,7 +241,7 @@ namespace Generator
 			if (prefixes.Count() > 0)
 			{
 				var longestPrefix = prefixes.Aggregate("", (max, cur) => max.Length > cur.Length ? max : cur);
-				return function.Replace(longestPrefix, "");
+				return longestPrefix.Length > 0 ? function.Replace(longestPrefix, "") : function;
 			}
 			return function;
 		}

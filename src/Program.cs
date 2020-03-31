@@ -82,6 +82,34 @@ namespace Generator
 
 		#region Example Configs
 
+		static Config GetMojoShaderConfig()
+		{
+			return new Config
+			{
+				DstDir = "~/Desktop/Mojo_Odin",
+				SrcDir = "~/Desktop/MojoShader",
+				BaseSourceFolder = "",
+				ModuleName = "fna",
+				NativeLibName = "FNA3D",
+				SkipLinkNameFunctionsThatContain = new string[] {},
+				EnumWordDictionary = new string[] {"equal", "clockwise", "face", "short", "vector", "coordinate", "indices",
+					"weight", "factor", "size", "left", "right", "contents", "buffer", "list", "strip", "byte", "single",
+					"bgra", "blendable", "only", "source", "color", "destination", "saturation", "alpha", "blend", "subtract"},
+				ExcludeFunctionsThatContain = new string[] {},
+				StripPrefixFromFunctionNames = new string[] {"MOJOSHADER_"},
+				CTypeToOdinType = {},
+				Defines = new string[] {},
+				IncludeFolders = new string[] {
+					""
+				},
+				Files = new string[] {
+					"mojoshader.h"
+				},
+				ExcludedFiles = new string[] {},
+				ExcludedFromOdinWrapperFiles = new string[] {}
+			};
+		}
+
 		static Config GetFNA3DConfig()
 		{
 			return new Config
