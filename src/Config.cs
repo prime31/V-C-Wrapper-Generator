@@ -160,7 +160,9 @@ namespace Generator
 			if (Files.Length == 0)
 				throw new ArgumentException(nameof(Files));
 
+			// we want longest first so we match them before shorter strings
 			Array.Sort(EnumWordDictionary, (x, y) => y.Length.CompareTo(x.Length));
+			Array.Sort(StripPrefixFromFunctionNames, (x, y) => y.Length.CompareTo(x.Length));
 
 			// exlude filenames dont need extensions
 			ExcludedFiles = ExcludedFiles.Select(f => f.Replace(".h", "")).ToArray();

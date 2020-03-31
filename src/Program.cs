@@ -124,9 +124,9 @@ namespace Generator
 					"weight", "factor", "size", "left", "right", "contents", "buffer", "list", "strip", "byte", "single",
 					"bgra", "blendable", "only", "source", "color", "destination", "saturation", "alpha", "blend", "subtract",
 					"2d", "3d"},
-				FunctionWordDictionary = new string[] {"2D", "3D", "YUV", "DXT1", "S3TC"},
+				FunctionWordDictionary = new string[] {"2D", "3D", "YUV", "DXT1", "S3TC", "JPG", "PNG"},
 				ExcludeFunctionsThatContain = new string[] {},
-				StripPrefixFromFunctionNames = new string[] {"FNA3D_"},
+				StripPrefixFromFunctionNames = new string[] {"FNA3D_", "FNA3D_Image_"},
 				CTypeToOdinType = {},
 				Defines = new string[] {},
 				IncludeFolders = new string[] {

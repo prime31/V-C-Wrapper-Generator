@@ -46,7 +46,7 @@ namespace Generator
 			{"const char**", "&rawptr"}
 		};
 
-		static string[] reserved = new[] { /*"map",*/ "string", "return", "or", "none", "false", "true" };
+		static string[] reserved = new[] { /*"map",*/ "string", "return", "or", "none", "false", "true", "context" };
 
 		public static void AddTypeConversions(Dictionary<string, string> types)
 		{
@@ -293,6 +293,9 @@ namespace Generator
 
 			if (name == "dynamic")
 				return "is_dynamic";
+
+			if (name == "context")
+				return "ctx";
 
 			if (reserved.Contains(name))
 				throw new System.Exception($"need escape for {name}");
