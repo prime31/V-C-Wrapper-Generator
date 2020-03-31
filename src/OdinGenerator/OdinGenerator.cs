@@ -19,7 +19,7 @@ namespace Generator
 				var odinName = Odin.ToAdaCase(name);
 				Odin.AddTypeConversion(name, odinName);
 
-				Console.WriteLine($"{odinName} :: struct {{}}");
+				Console.WriteLine($"AddTypeConversion: {odinName} :: struct {{}}");
 			}
 
 			// add conversions for any types in the lib
