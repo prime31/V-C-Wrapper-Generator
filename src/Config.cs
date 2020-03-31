@@ -13,9 +13,14 @@ namespace Generator
 		public string ModuleName {get; set;}
 
 		/// <summary>
-		/// when converting enums these words will be search for an used to break up the name when Ada casing
+		/// when converting enums these words will be searched for an used to break up the name when Ada casing
 		/// </summary>
 		public string[] EnumWordDictionary {get; set;} = new string[] {};
+
+		/// <summary>
+		/// when converting enums these words will be searched for an used to break up the name when Ada casing
+		/// </summary>
+		public string[] FunctionWordDictionary {get; set;} = new string[] {};
 
 		/// <summary>
 		/// the name of the lib name. For windows it will be NAME.lib, mac libNAME.dylib and linux libNAME.so

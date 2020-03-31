@@ -108,7 +108,7 @@ namespace Generator
 			{
 				SkipLinkNameAttribute = skipLink,
 				Name = cFunc.Name,
-				OdinName = skipLink ? cFunc.Name : Odin.ToSnakeCase(config.StripFunctionPrefix(cFunc.Name))
+				OdinName = skipLink ? cFunc.Name : Odin.GetFunctionName(cFunc.Name, config)
 			};
 
 			if (cFunc.ReturnType.GetDisplayName() != "void")

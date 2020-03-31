@@ -46,7 +46,7 @@ namespace Generator
 			{"const char**", "&rawptr"}
 		};
 
-		static string[] reserved = new[] { /*"map",*/ "string", "return", "or", "none", "type", "select", "false", "true", "module" };
+		static string[] reserved = new[] { /*"map",*/ "string", "return", "or", "none", "false", "true" };
 
 		public static void AddTypeConversions(Dictionary<string, string> types)
 		{
@@ -251,6 +251,18 @@ namespace Generator
 			return name;
 		}
 
+		public static string GetFunctionName(string name, Config config)
+		{
+			name = config.StripFunctionPrefix(name);
+			foreach (var part in config.FunctionWordDictionary)
+			{
+				if (name.Contains(part))
+					name = name.Replace(part, part[0] + part.Substring(1).ToLower());
+			}
+
+			return Odin.ToSnakeCase(name);
+		}
+
 		public static string GetOdinEnumItemName(string name, Config config)
 		{
 			var newName = ToAdaCase(name).MakeSafeEnumItem();
@@ -305,7 +317,11 @@ namespace Generator
 			if (name.Contains("_"))
 				return name.ToLower();
 
-			name = string.Concat(name.Select((x, i) => i > 0 && char.IsUpper(x) ? "_" + x.ToString() : x.ToString())).ToLower();
+			name = string.Concat(name.Select((x, i) => {
+				var blah = name.Length > i + 1 && char.IsDigit(x) && name[i + 1] == 'd';
+
+				return i > 0 && (char.IsUpper(x) || blah) ? "_" + x.ToString() : x.ToString();
+			})).ToLower();
 			return EscapeReserved(name);
 		}
 
