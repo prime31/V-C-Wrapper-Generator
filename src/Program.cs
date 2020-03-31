@@ -133,7 +133,7 @@ namespace Generator
 					"include"
 				},
 				Files = new string[] {
-					"FNA3D.h"
+					"FNA3D.h", "FNA3D_Image.h"
 				},
 				ExcludedFiles = new string[] {},
 				ExcludedFromOdinWrapperFiles = new string[] {}
