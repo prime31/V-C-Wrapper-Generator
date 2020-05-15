@@ -1,5 +1,5 @@
 # V-C-Wrapper-Generator
-Helper for generating V wrapper code from C source
+Helper for generating Odin or V wrapper code from C source. Use the "odin" branch to get to the Odin generator.
 
 
 ## Requirements for Building
