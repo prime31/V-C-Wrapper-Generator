@@ -34,9 +34,9 @@ namespace Generator
 			}
 			else if (args.Contains("-g"))
 			{
-				Console.WriteLine("Invalid arguments. The -g option requires a filename");
 				if (args.Length != 2)
 				{
+					Console.WriteLine("Invalid arguments. The -g option requires a filename");
 					PrintHelp();
 					return;
 				}
